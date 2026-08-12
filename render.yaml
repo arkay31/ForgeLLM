@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: forgellm-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: FORGELLM_ENV
+        value: production
+      - key: FORGELLM_INFERENCE_MODE
+        value: demo
+      - key: FORGELLM_TRAINING_MODE
+        value: demo
+      - key: FORGELLM_DEVICE
+        value: cpu
+      - key: CORS_ORIGINS
+        value: "https://frontend-henna-phi-60.vercel.app,https://frontend-oct0tmrlm-rakshits-projects-c0ee8531.vercel.app,http://localhost:5173"
+      - key: FORGE_API_KEY
+        generateValue: true

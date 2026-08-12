@@ -5,7 +5,13 @@ import time
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any
 
-import torch
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    HAS_TORCH = False
+
 from app.config import settings
 
 logger = logging.getLogger("ForgeLLM.ModelManager")
@@ -17,7 +23,7 @@ class LocalModelManager:
     Manages local LLM model and adapter loading for Text-to-SQL inference.
     Implements a load-once-and-reuse caching strategy to avoid reloading
     large weights on every HTTP request.
-    Supports Apple Silicon (MPS) and CPU execution.
+    Supports Apple Silicon (MPS), CUDA, and CPU execution.
     """
 
     def __init__(self):
@@ -27,8 +33,8 @@ class LocalModelManager:
 
         self.model: Optional[Any] = None
         self.tokenizer: Optional[Any] = None
-        self.device: Optional[torch.device] = None
-        self.torch_dtype: Optional[torch.dtype] = None
+        self.device: Any = "cpu"
+        self.torch_dtype: Optional[Any] = None
         
         self.last_load_time_ms: float = 0.0
         self.load_error: Optional[str] = None
@@ -36,6 +42,12 @@ class LocalModelManager:
         self._determine_device()
 
     def _determine_device(self):
+        if not HAS_TORCH or torch is None:
+            self.device = "cpu"
+            self.torch_dtype = None
+            logger.info("💻 PyTorch (torch) not installed; operating in lightweight demo mode.")
+            return
+
         requested_device = settings.DEVICE.lower()
 
         if requested_device == "cuda" and torch.cuda.is_available():
@@ -64,6 +76,7 @@ class LocalModelManager:
                 self.device = torch.device("cpu")
                 self.torch_dtype = torch.float32
                 logger.info("💻 CPU device active for PyTorch inference.")
+
 
 
     def load_model(
@@ -164,6 +177,8 @@ class LocalModelManager:
         Executes model text generation.
         Returns: (generated_text, generation_time_ms, prompt_tokens, completion_tokens)
         """
+        if not HAS_TORCH or torch is None:
+            raise RuntimeError("PyTorch (torch) is not installed in this environment.")
         if self.model is None or self.tokenizer is None:
             raise RuntimeError("Model is not loaded. Call load_model() first.")
 
@@ -204,11 +219,18 @@ class LocalModelManager:
         self.current_adapter_path = None
 
         gc.collect()
-        if getattr(torch, "mps", None) and hasattr(torch.mps, "empty_cache"):
-            try:
-                torch.mps.empty_cache()
-            except Exception:
-                pass
+        if HAS_TORCH and torch is not None:
+            if getattr(torch, "mps", None) and hasattr(torch.mps, "empty_cache"):
+                try:
+                    torch.mps.empty_cache()
+                except Exception:
+                    pass
+            elif getattr(torch, "cuda", None) and hasattr(torch.cuda, "empty_cache"):
+                try:
+                    torch.cuda.empty_cache()
+                except Exception:
+                    pass
 
 
 model_manager = LocalModelManager()
+

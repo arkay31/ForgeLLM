@@ -10,8 +10,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional, AsyncGenerator
 
-import torch
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    HAS_TORCH = False
+
 from app.config import settings
+
 from app.models.schemas import (
     TrainingJobRequest,
     TrainingJobStatus,
@@ -152,9 +159,13 @@ class TrainerEngine:
 
     async def _execute_real_peft_training(self, job_id: str, dataset_items: List[Dict[str, Any]]):
         """Executes real PyTorch + PEFT LoRA supervised fine-tuning loop."""
+        if not HAS_TORCH or torch is None:
+            raise RuntimeError("PyTorch (torch) is not installed in this environment.")
+
         job = self.jobs[job_id]
         hyper = job.hyperparameters
         start_time = time.time()
+
 
         # 1. Device selection (Apple Silicon MPS vs CPU)
         if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():

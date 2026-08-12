@@ -1,9 +1,15 @@
 import time
 
 import psutil
-import torch
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    HAS_TORCH = False
 
 from fastapi import APIRouter
+
 from fastapi.responses import PlainTextResponse
 
 from prometheus_client import (
@@ -100,17 +106,18 @@ async def get_system_metrics():
     gpu_mem_used = 0.0
     gpu_mem_total = 0.0
 
-    if torch.cuda.is_available():
+    if HAS_TORCH and torch is not None and getattr(torch, "cuda", None) and torch.cuda.is_available():
         gpu_available = True
         gpu_name = torch.cuda.get_device_name(0)
         gpu_mem_used = round(torch.cuda.memory_allocated(0) / (1024 ** 3), 2)
         gpu_mem_total = round(torch.cuda.get_device_properties(0).total_memory / (1024 ** 3), 2)
-    elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+    elif HAS_TORCH and torch is not None and getattr(torch, "backends", None) and getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
         gpu_available = True
         gpu_name = "Apple Silicon Neural Engine (MPS UMA)"
         # Apple Silicon utilizes Unified Memory Architecture (UMA) shared RAM
         gpu_mem_used = round(mem.used / (1024 ** 3), 2)
         gpu_mem_total = round(mem.total / (1024 ** 3), 2)
+
 
     # 3. Model Serving Metrics & Latency Statistics
     active_cp = registry_service.get_active_checkpoint()
