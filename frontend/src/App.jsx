@@ -23,6 +23,8 @@ import {
   fetchTrainingJobs,
 } from './services/api';
 
+import { formatToLocalTime } from './utils/time';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [systemMetrics, setSystemMetrics] = useState(null);
@@ -45,8 +47,9 @@ export default function App() {
       if (mRes.status === 'fulfilled' && mRes.value) {
         const metrics = mRes.value;
         setSystemMetrics(metrics);
-        const timestamp = metrics.timestamp || new Date().toLocaleTimeString();
+        const timestamp = formatToLocalTime(metrics.timestamp);
         setLastUpdated(timestamp);
+
 
         // If backend returned history, map it directly; otherwise push to rolling history
         if (hRes.status === 'fulfilled' && Array.isArray(hRes.value) && hRes.value.length > 0) {

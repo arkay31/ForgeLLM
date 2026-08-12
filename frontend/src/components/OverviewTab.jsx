@@ -20,6 +20,8 @@ import {
 } from 'recharts';
 
 
+import { formatToLocalTime } from '../utils/time';
+
 export default function OverviewTab({
   systemMetrics,
   telemetryHistory = [],
@@ -87,13 +89,13 @@ export default function OverviewTab({
       : null;
 
 
+  const gpuDeviceName =
+    systemMetrics?.gpu_name ||
+    (systemMetrics?.gpu_available ? 'NVIDIA GPU (CUDA)' : 'CPU Execution Engine');
+
   return (
 
-    <div
-      style={{
-        marginBottom: '1.5rem',
-      }}
-    >
+    <div className="page-view">
 
       <h2
         style={{
@@ -165,43 +167,29 @@ export default function OverviewTab({
             </span>
           </div>
           <div className="stat-value" style={{ fontSize: '1.05rem' }}>
-            {systemMetrics?.gpu_name || 'Apple Silicon MPS UMA'}
+            {gpuDeviceName}
           </div>
           <div className="stat-subtext">
-            Unified RAM: {systemMetrics?.gpu_memory_used_gb || 0} GB / {systemMetrics?.gpu_memory_total_gb || 0} GB
+            Accelerator Memory: {systemMetrics?.gpu_memory_used_gb || 0} GB / {systemMetrics?.gpu_memory_total_gb || 0} GB
           </div>
         </div>
 
-
-
         {/* Active Model */}
-
         <div className="glass-card">
-
           <div className="card-header">
-
             <span className="card-title">
-
               <Activity
                 size={16}
                 style={{
                   color: '#10b981',
                 }}
               />
-
               Active Serving Model
-
             </span>
-
-
             <span className="badge badge-emerald">
-
               Hot-Swappable
-
             </span>
-
           </div>
-
 
           <div
             className="stat-value"
@@ -210,17 +198,13 @@ export default function OverviewTab({
               color: '#00f2fe',
             }}
           >
-
             {
               activeModel?.name
               || 'Base Model'
             }
-
           </div>
 
-
           <div className="stat-subtext">
-
             Exact Match SQL Acc:
             {' '}
             {
@@ -233,9 +217,7 @@ export default function OverviewTab({
                 * 100
               ).toFixed(0)
             }%
-
           </div>
-
         </div>
 
       </div>
@@ -271,9 +253,10 @@ export default function OverviewTab({
                     <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="time" stroke="#64748b" />
+                <XAxis dataKey="time" stroke="#64748b" tickFormatter={formatToLocalTime} />
                 <YAxis stroke="#64748b" domain={[0, 100]} unit="%" />
-                <Tooltip contentStyle={{ background: '#0f172a', borderColor: '#334155' }} />
+                <Tooltip contentStyle={{ background: '#0f172a', borderColor: '#334155' }} labelFormatter={formatToLocalTime} />
+
                 <Area
                   type="monotone"
                   dataKey="cpu"
@@ -432,6 +415,7 @@ export default function OverviewTab({
                 <XAxis
                   dataKey="time"
                   stroke="#64748b"
+                  tickFormatter={formatToLocalTime}
                 />
 
 
@@ -450,6 +434,7 @@ export default function OverviewTab({
                     background: '#0f172a',
                     borderColor: '#334155',
                   }}
+                  labelFormatter={formatToLocalTime}
                 />
 
 

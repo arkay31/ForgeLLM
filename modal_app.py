@@ -66,6 +66,15 @@ class ForgeLLMServer:
         os.environ["FORGELLM_INFERENCE_MODE"] = "real"
         os.environ["FORGELLM_DEVICE"] = "cuda"
         os.environ["FORGELLM_BASE_MODEL"] = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+        os.environ["CORS_ORIGINS"] = (
+            "https://frontend-oct0tmrlm-rakshits-projects-c0ee8531.vercel.app,"
+            "https://frontend-henna-phi-60.vercel.app,"
+            "http://localhost:5173,"
+            "http://localhost:5174,"
+            "http://127.0.0.1:5173,"
+            "http://127.0.0.1:5174"
+        )
+
 
         from app.config import settings
         settings.INFERENCE_MODE = "real"

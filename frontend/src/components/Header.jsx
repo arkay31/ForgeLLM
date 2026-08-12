@@ -22,8 +22,9 @@ export default function Header({ systemMetrics, activeModel, lastUpdated, onRefr
 
         <div className="status-pill">
           <HardDrive size={14} className="text-violet" />
-          <span>Compute: <strong>{systemMetrics?.gpu_name || 'CPU/MPS'}</strong></span>
+          <span>Compute: <strong>{systemMetrics?.gpu_name || (systemMetrics?.gpu_available ? 'GPU Accelerator' : 'CPU Execution Engine')}</strong></span>
         </div>
+
 
         <div className="status-pill">
           <Zap size={14} className="text-amber" />

@@ -75,7 +75,8 @@ export default function ExperimentsTab({ onNavigateToRegistry }) {
             <ArrowRight size={16} style={{ color: 'var(--text-muted)' }} />
             <div style={{ textAlign: 'center', flex: 1, minWidth: '120px' }}>
               <div className="badge badge-cyan" style={{ width: '100%', justifyContent: 'center', padding: '0.5rem' }}>2. Training</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>PyTorch + PEFT LoRA (MPS/CPU)</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>PyTorch + PEFT LoRA (CUDA/MPS/CPU)</div>
+
             </div>
             <ArrowRight size={16} style={{ color: 'var(--text-muted)' }} />
             <div style={{ textAlign: 'center', flex: 1, minWidth: '120px' }}>
