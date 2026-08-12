@@ -1,0 +1,44 @@
+[
+  {
+    "id": "spider-1",
+    "db_id": "concert_singer",
+    "schema": "CREATE TABLE singer (singer_id INT, name TEXT, country TEXT, song_name TEXT, song_release_year TEXT, age INT, is_male BOOLEAN);\nCREATE TABLE concert (concert_id INT, concert_name TEXT, theme TEXT, stadium_id INT, year INT);\nCREATE TABLE singer_in_concert (concert_id INT, singer_id INT);",
+    "instruction": "Find the names, country, and age of all singers who have sung in concerts released after the year 2020.",
+    "input": "Database: concert_singer. Tables: singer, concert, singer_in_concert.",
+    "output": "SELECT T1.name, T1.country, T1.age FROM singer AS T1 JOIN singer_in_concert AS T2 ON T1.singer_id = T2.singer_id JOIN concert AS T3 ON T2.concert_id = T3.concert_id WHERE T3.year > 2020 GROUP BY T1.singer_id;",
+    "difficulty": "medium"
+  },
+  {
+    "id": "spider-2",
+    "db_id": "concert_singer",
+    "schema": "CREATE TABLE singer (singer_id INT, name TEXT, country TEXT, song_name TEXT, song_release_year TEXT, age INT, is_male BOOLEAN);",
+    "instruction": "What is the average age and maximum age of singers from 'USA'?",
+    "input": "Database: concert_singer. Table: singer.",
+    "output": "SELECT AVG(age), MAX(age) FROM singer WHERE country = 'USA';",
+    "difficulty": "easy"
+  },
+  {
+    "id": "spider-3",
+    "db_id": "ecommerce_store",
+    "schema": "CREATE TABLE customers (customer_id INT PRIMARY KEY, first_name TEXT, last_name TEXT, email TEXT, country TEXT);\nCREATE TABLE orders (order_id INT PRIMARY KEY, customer_id INT, order_date DATE, total_amount DECIMAL, status TEXT);\nCREATE TABLE order_items (item_id INT PRIMARY KEY, order_id INT, product_id INT, quantity INT, unit_price DECIMAL);",
+    "instruction": "Find top 5 customers by total lifetime spending who live in 'Canada' or 'Germany'.",
+    "output": "SELECT T1.customer_id, T1.first_name, T1.last_name, SUM(T2.total_amount) AS total_spent FROM customers AS T1 JOIN orders AS T2 ON T1.customer_id = T2.customer_id WHERE T1.country IN ('Canada', 'Germany') AND T2.status = 'Completed' GROUP BY T1.customer_id, T1.first_name, T1.last_name ORDER BY total_spent DESC LIMIT 5;",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spider-4",
+    "db_id": "hr_analytics",
+    "schema": "CREATE TABLE employees (emp_id INT PRIMARY KEY, first_name TEXT, last_name TEXT, dept_id INT, salary DECIMAL, hire_date DATE);\nCREATE TABLE departments (dept_id INT PRIMARY KEY, dept_name TEXT, manager_id INT);",
+    "instruction": "List all departments along with the total number of employees and the average salary per department for departments with more than 10 employees.",
+    "output": "SELECT T2.dept_name, COUNT(T1.emp_id) AS num_employees, AVG(T1.salary) AS avg_salary FROM employees AS T1 JOIN departments AS T2 ON T1.dept_id = T2.dept_id GROUP BY T2.dept_id, T2.dept_name HAVING COUNT(T1.emp_id) > 10 ORDER BY avg_salary DESC;",
+    "difficulty": "hard"
+  },
+  {
+    "id": "spider-5",
+    "db_id": "finance_bank",
+    "schema": "CREATE TABLE accounts (account_id INT PRIMARY KEY, customer_id INT, account_type TEXT, balance DECIMAL);\nCREATE TABLE transactions (tx_id INT PRIMARY KEY, account_id INT, tx_date DATE, amount DECIMAL, tx_type TEXT);",
+    "instruction": "Get total deposit transaction volume for each account type in the last 30 days.",
+    "output": "SELECT T1.account_type, SUM(T2.amount) AS total_deposit_volume FROM accounts AS T1 JOIN transactions AS T2 ON T1.account_id = T2.account_id WHERE T2.tx_type = 'Deposit' AND T2.tx_date >= DATE('now', '-30 days') GROUP BY T1.account_type;",
+    "difficulty": "medium"
+  }
+]

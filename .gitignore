@@ -1,0 +1,51 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Model / ML artifacts
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+.cache/
+huggingface_cache/
+
+# Local model/checkpoint storage
+storage/checkpoints/
+storage/models/
+
+# Generated benchmark/runtime data
+benchmark_results_*.json
+storage/experiments/
+storage/registry_metadata.json
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Runtime / generated application data
+storage/benchmark_results.json
+storage/eval_history.json
+storage/eval_results.json
+storage/feedback.db
+
+# Generated processed datasets
+storage/datasets/processed/
