@@ -112,9 +112,21 @@ def test_eval_benchmark_endpoints():
     assert "throughput_req_sec" in data_perf["finetuned_metrics"]
 
 
-def test_unauthorized_access():
-    """Verify API key authentication protection on protected endpoints."""
+def test_unauthenticated_demo_inference():
+    """Verify demo inference endpoint succeeds without API key."""
+    payload = {"prompt": "Test query"}
+    response = client.post("/api/v1/serve/generate", json=payload)
+    assert response.status_code == 200
+    assert "formatted_sql" in response.json()
+
+
+def test_unauthorized_access_protected_endpoint():
+    """Verify API key authentication protection on protected admin endpoints."""
     bad_headers = {"X-API-Key": "invalid-secret-key"}
-    payload = {"prompt": "Test"}
-    response = client.post("/api/v1/serve/generate", json=payload, headers=bad_headers)
+    response = client.post("/api/v1/models/active/swap", json={"checkpoint_id": "test"}, headers=bad_headers)
     assert response.status_code == 401
+
+    # Protected endpoint without any API key header
+    response_no_key = client.post("/api/v1/models/active/swap", json={"checkpoint_id": "test"})
+    assert response_no_key.status_code == 401
+

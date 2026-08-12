@@ -3,7 +3,8 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 
 from app.models.schemas import ExperimentRecord, ExperimentComparisonResponse
 from app.services.experiment_service import experiment_service
-from app.api.routes_serve import verify_api_key
+from app.services.auth_service import verify_api_key
+
 
 router = APIRouter(prefix="/experiments", tags=["Experiments & MLOps"])
 

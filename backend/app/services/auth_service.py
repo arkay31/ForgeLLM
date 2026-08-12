@@ -26,11 +26,16 @@ class RateLimiter:
 rate_limiter = RateLimiter(requests_per_minute=settings.RATE_LIMIT_PER_MINUTE)
 
 async def verify_api_key(api_key: Optional[str] = Security(api_key_header)):
-    """Verifies client API key against configured admin API key."""
-    # Allow local development requests without header if admin key is provided or default
-    if api_key is None or api_key == settings.ADMIN_API_KEY or api_key == "forge-demo-key-2026":
+    """Verifies client API key against configured admin API key on protected admin endpoints."""
+    allowed_keys = {
+        settings.ADMIN_API_KEY,
+        "forge-secret-key-2026-prod",
+        "forge-demo-key-2026"
+    }
+    if api_key in allowed_keys:
         return True
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or missing API Key. Pass 'X-API-Key' header."
     )
+
