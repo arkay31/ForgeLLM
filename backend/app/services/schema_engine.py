@@ -101,23 +101,57 @@ CREATE TABLE transactions (tx_id INT PRIMARY KEY, account_id INT, tx_date DATE, 
         ]
 
     def format_and_validate_sql(self, raw_sql: str) -> Tuple[bool, str, Optional[str], List[str]]:
-        """Cleans, formats, and parses SQL using sqlglot."""
-        cleaned_sql = raw_sql.strip()
-        if cleaned_sql.startswith("```sql"):
-            cleaned_sql = cleaned_sql[6:]
-        if cleaned_sql.startswith("```"):
-            cleaned_sql = cleaned_sql[3:]
-        if cleaned_sql.endswith("```"):
-            cleaned_sql = cleaned_sql[:-3]
-        cleaned_sql = cleaned_sql.strip()
+        """
+        Cleans, normalizes, extracts SQL-only statements from LLM output (stripping markdown code fences
+        and trailing conversational explanations), and parses SQL using sqlglot.
+        """
+        import re
+        text = raw_sql.strip()
 
+        # 1. Extract markdown code blocks if present (e.g. ```sql ... ```)
+        code_block_match = re.search(r"```(?:sql)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+        if code_block_match:
+            text = code_block_match.group(1).strip()
+
+        # 2. Strip leading conversational text before SELECT / WITH
+        match_start = re.search(r"\b(SELECT|WITH)\b", text, re.IGNORECASE)
+        if match_start:
+            text = text[match_start.start():].strip()
+
+        # 3. Try parsing the text directly with sqlglot
         try:
-            parsed = sqlglot.parse_one(cleaned_sql, read="sqlite")
+            parsed = sqlglot.parse_one(text, read="sqlite")
             formatted = parsed.sql(pretty=True)
             tables = [table.name for table in parsed.find_all(sqlglot.exp.Table)]
             return True, formatted, None, tables
-        except Exception as e:
-            return False, cleaned_sql, str(e), []
+        except Exception:
+            pass
+
+        # 4. Try parsing multi-statement expressions using sqlglot parser AST
+        try:
+            statements = sqlglot.parse(text, read="sqlite")
+            for stmt in statements:
+                if stmt and isinstance(stmt, (sqlglot.exp.Select, sqlglot.exp.Union, sqlglot.exp.Expression)):
+                    tables = [table.name for table in stmt.find_all(sqlglot.exp.Table)]
+                    return True, stmt.sql(pretty=True), None, tables
+        except Exception:
+            pass
+
+        # 5. Semicolon boundary extraction (handles SQL statement terminating with ';' followed by conversational text)
+        if ";" in text:
+            accumulated = ""
+            for part in text.split(";"):
+                accumulated += part + ";"
+                try:
+                    parsed = sqlglot.parse_one(accumulated.strip(), read="sqlite")
+                    if isinstance(parsed, (sqlglot.exp.Select, sqlglot.exp.Union, sqlglot.exp.Expression)):
+                        tables = [table.name for table in parsed.find_all(sqlglot.exp.Table)]
+                        return True, parsed.sql(pretty=True), None, tables
+                except Exception:
+                    continue
+
+        return False, raw_sql.strip(), "Unable to extract or parse valid SQL AST statement from model generation output", []
+
 
 
 

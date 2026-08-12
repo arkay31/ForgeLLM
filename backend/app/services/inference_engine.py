@@ -441,12 +441,21 @@ class InferenceEngine:
         # Response
         # -------------------------------
 
+        device_type = (
+            getattr(model_manager.device, "type", settings.DEVICE.lower()).upper()
+            if getattr(model_manager, "device", None)
+            else "CPU"
+        )
+        base_model_name = active_cp.name.replace(" (MPS)", "").replace(" (CUDA)", "").replace(" (CPU)", "")
+        model_used_display = f"{base_model_name} ({device_type})" if is_finetuned else active_cp.name
+
         return SQLGenerationResponse(
             generation_id=f"gen-{uuid.uuid4().hex[:8]}",
             question=request.prompt,
             generated_sql=generated_raw_sql,
             formatted_sql=formatted_sql,
-            model_used=active_cp.name,
+            model_used=model_used_display,
+
             is_finetuned=is_finetuned,
             latency_ms=latency_ms,
             prompt_tokens=prompt_tokens,
