@@ -7,3 +7,4 @@ aiofiles
 httpx
 sqlglot>=23.0.0
 sqlglot>=23.0.0
+psutil
